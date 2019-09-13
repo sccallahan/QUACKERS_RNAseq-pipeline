@@ -37,7 +37,7 @@ git clone https://gitlab.com/sccallahan/quackers---an-rnaseq-pipeline
 cd quackers---an-rnaseq-pipeline
 ```
 
-This should deposit all the scripts into your directory. Next, you need to create a sample sheet. This sheet MUST BE NAMED `sample_sheet_STAR.txt`, or the pipeline will fail. Aternatively, you could edit the `Quackling_STAR.sh` file to whatever you named your sample sheet. The sample sheet needs to be a tabbed texted file, with each paired end fastq belonging to the same row and separate columns. Here's an example:
+This should deposit all the scripts into your directory. Next, you need to create a sample sheet. This sheet MUST BE NAMED `sample_sheet_STAR.txt`, or the pipeline will fail. Alternatively, you could edit the `Quackling_STAR.sh` file to whatever you named your sample sheet. The sample sheet needs to be a tabbed texted file, with each paired end fastq belonging to the same row and separate columns. Here's an example:
 
 ``` bash
 HN30_KD1_1.fq.gz    HN30_KD1_2.fq.gz
@@ -56,6 +56,16 @@ You should now have the following files in the same (working) directory:
 -   `sample_sheet_STAR.sh`
 
 And you should know the paths to the hg19 folder for STAR and have a gene annoation file for featureCounts. You should also have all your fastq files in their own directory (named whatever you like).
+
+**NB:** The pipeline cannot currently recursively search folders, i.e., you'll need to move each .fastq.gz into the same parent directory (some cores provide fastq.gz directly, some give you each folder containing each pair of fastq.gz as they come off the sequencing machine). I plan on adding this functionality when I get some time to work on it. In the mean time, I've uploaded a hack-y workaround called `extract_fastq_from_folder.sh`. Place this script in your fastq directory and run it - it will move into each folder and rsync the fastq.gz into the parent directory, provided your directory structure is:
+
+-   Fastq\_dir
+    -   Fastq\_sample\_1\_dir
+        -   Fastq\_files
+    -   Fastq\_sample\_2\_dir
+        -   Fastq\_files
+
+and so on. After the pipeline is done, you can freely delete the rsync'd fastqs to save disk space if you'd like.
 
 Running the Code
 ----------------
