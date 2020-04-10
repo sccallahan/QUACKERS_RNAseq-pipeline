@@ -17,7 +17,7 @@ sleep=$5
 
 # all scripts need to be in same working directory
 # `source activate py351` before running, else multiqc won't work
-# Syntax: bash beginQuacking.sh [fastq directory] [index path] [gtf file] [sleep time]
+# Syntax: bash beginQuacking.sh [fastq directory] [index path] [star gtf file] [fc gtf file] [sleep time]
 
 #### Some rough argument checks ####
 if [ $# -eq 0 ]; then
