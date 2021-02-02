@@ -1,7 +1,7 @@
 QUACKERS (an RNAseq pipeline)
 ================
 Carson Callahan
-July 2, 2019
+Feb 2, 2021
 
 Intro
 -----
@@ -35,59 +35,48 @@ git clone https://github.com/sccallahan/QUACKERS_RNAseq-pipeline
 cd QUACKERS_RNAseq-pipeline
 ```
 
-This should deposit all the scripts into your directory. Next, you need to create a sample sheet. This sheet MUST BE NAMED `sample_sheet_STAR.txt`, or the pipeline will fail. Alternatively, you could edit the `quack_STAR.sh` file to whatever you named your sample sheet. The sample sheet needs to be a tabbed texted file, with each paired end fastq belonging to the same row and separate columns. Here's an example:
-
-``` bash
-HN30_KD1_1.fq.gz    HN30_KD1_2.fq.gz
-HN30_KD2_1.fq.gz    HN30_KD2_2.fq.gz
-HN30_KD3_1.fq.gz    HN30_KD3_2.fq.gz
-HN30_NT1_1.fq.gz    HN30_NT1_2.fq.gz
-HN30_NT2_1.fq.gz    HN30_NT2_2.fq.gz
-HN30_NT3_1.fq.gz    HN30_NT3_2.fq.gz
-```
-
-You should now have the following files in the same (working) directory:
+This should deposit all the scripts into your directory. Below is a list of scripts you should now have in the same (working) directory:
 
 -   `beginQuacking.sh`
+-   `quack_mergeFastq.sh`
 -   `quack_STAR.sh`
 -   `quack_fastqc.sh`
 -   `quack_multiqc.sh`
 -   `quack_mergeCounts.sh`
--   `sample_sheet_STAR.txt`
 
-It's also important that your fastq files are all in the same directory.
+Fastq directory structure
+-------------------------
 
-**NB:** The pipeline cannot currently recursively search folders, i.e., you'll need to move each fastq into the same parent directory (some cores provide fastq.gz directly, some give you each folder containing each pair of fastq.gz as they come off the sequencing machine). I plan on adding this functionality when I get some time to work on it. In the mean time, I've uploaded a hack-y workaround called `extract_fastq_from_folder.sh`. Place this script in your fastq directory and run it - it will move into each folder and rsync the fastq into the parent directory, provided your directory structure is:
+The code assumes a directory structure as follows:
 
 -   Fastq\_dir
-    -   Fastq\_sample\_1\_dir
-        -   Fastq\_files
-    -   Fastq\_sample\_2\_dir
-        -   Fastq\_files
+    -   Sample1
+        -   Sample1\_R1.fastq.gz
+        -   Sample1\_R2.fastq.gz
+    -   Sample2
+        -   Sample2\_R1.fastq.gz
+        -   Sample2\_R2.fastq.gz
 
-and so on. After the pipeline is done, you can freely delete the rsync'd fastqs to save disk space if you'd like.
-
-Additionally, you can modify the `quack_STAR.sh` file to drop the fastq suffix from your sample names in future outputs. This option can be found on line 27 of the script. Simply change '.fastq.gz' to whatever your fastq suffix is.
+and so on.
 
 Running the Code
 ----------------
 
 Simply run the parent script `beginQuacking.sh` In brief, this script is run with the following syntax:
 
-`bash beginQuacking.sh [fastq directory] [index path] [star gtf file] [fc gtf file] [sleep time]`
+`bash beginQuacking.sh [fastq directory] [index path] [genome gtf file] [sleep time]`
 
-Here's a brief explanation of the 5 arguments:
+Here's a brief explanation of the 4 arguments:
 
--   fastq directory - a folder containing only the fastqs of interest
--   index path - the *folder* containing the STAR index
--   star gtf file - path to the gtf file(s) used to generate the STAR index, or the gtfs to be used on the fly during mapping. Can take a syntax like `/path/to/files/*.gtf` as well.
--   fc gtf file - path to the gtf file to be used for featureCounts. This should generally be the same as the star tf file.
+-   fastq directory - a directory with the previously mentioned structure, containing only folders with fastqs
+-   index path - the *folder* containing the STAR index files
+-   genome gtf file - path to the gtf file(s) used to generate the STAR index, or the gtfs to be used on the fly during mapping
 -   sleep time - amount of time to wait before checking for files during aligment, counting, etc. For example, 60 would tell the script to check for completion of alignment every 60 seconds and print a message to the terminal. In most cases, 60-180 seconds is probably best.
 
 So, running the script for me would look something like this:
 
 ``` bash
-bash beginQuacking.sh /rsrch2/headneck/sccallahan/testdir/testfqs /rsrch2/headneck/sccallahan/apps/annot/starbase/hg19/starindex /rsrch2/headneck/sccallahan/apps/annot/starbase/hg19/annot/*.gtf /rsrch2/headneck/sccallahan/apps/annot/starbase/hg19/annot/*.gtf 60
+bash beginQuacking.sh /rsrch2/headneck/sccallahan/fastqs/ /rsrch2/headneck/sccallahan/apps/annot/starbase/hg19/starindex /rsrch2/headneck/sccallahan/apps/annot/starbase/hg19/annot/file.gtf 60
 ```
 
 This will submit all the jobs. The scripts will make folders in the current workding directory and place relevant outputs there. The created folders are:
@@ -113,14 +102,4 @@ Downstream processing
 
 For downstream work, you should first check the multiqc output to make sure your sequencing was of sufficient quality (uniquely mapped reads, duplication rates, etc.).
 
-Next, read the raw counts table into R. You'll notice the column names are very messy, but this can be easy cleaned up by manually setting column names, or being clever with regex to do it for you. I don't have too many samples, so it's easy to set manually.
-
-``` r
-library(tidyverse)
-
-counts <- read.table("/path/to/raw_counts_table.txt", header = TRUE)
-counts <- column_to_rownames(counts, var = "Geneid")
-colnames(counts) <- c("KD1", "KD2", "KD3", "NT1", "NT2", "NT3") # you could also try some regex here, which is useful if you have tons of samples
-```
-
-Now you should have a counts matrix that is ready for analysis with DESeq2 or other tools.
+Next, read the raw counts table into R. You'll notice the column names are very messy, but this can be easy cleaned up by manually setting column names, or being clever with regex to do it for you. Now you should have a counts matrix that is ready for analysis with DESeq2 or other tools.
