@@ -9,11 +9,10 @@
 pwd=`pwd`
 me=`basename "$0"`
 
-dir=$1
+fastq_dir=$1
 index_path=$2
-star_gtf=$3
-fc_gtf=$4
-sleep=$5
+genome_gtf=$3
+sleep=$4
 
 # all scripts need to be in same working directory
 # `source activate py351` before running, else multiqc won't work
@@ -21,15 +20,15 @@ sleep=$5
 
 #### Some rough argument checks ####
 if [ $# -eq 0 ]; then
-  echo "Usage: bash ${me} [fastq directory] [index path] [star gtf file] [fc gtf file] [sleep time]"
+  echo "Usage: bash ${me} [fastq directory] [index path] [genome gtf file] [sleep time]"
   exit 1
-elif [ $# -lt 5 ]; then
+elif [ $# -lt 4 ]; then
   echo "Not enough arguments!"
-  echo "Usage: bash ${me} [fastq directory] [index path] [star gtf file] [fc gtf file] [sleep time]"
+  echo "Usage: bash ${me} [fastq directory] [index path] [genome gtf file] [sleep time]"
   exit 1
-elif [ $# -gt 5 ]; then
+elif [ $# -gt 4 ]; then
   echo "Too many arguments!"
-  echo "Usage: bash ${me} [fastq directory] [index path] [star gtf file] [fc gtf file] [sleep time]"
+  echo "Usage: bash ${me} [fastq directory] [index path] [genome gtf file] [sleep time]"
   exit 1
 fi
 
@@ -40,18 +39,33 @@ mkdir -p multiqc_output
 mkdir -p STAR_output
 mkdir -p featureCounts_output
 
+#### merge fastq and make sample sheet ####
+bash quack_mergeFastq.sh ${fastq_dir}
+
+cd ${fastq_dir}
+
+until [[ `ls sample_sheet_STAR.txt 2>/dev/null | wc -l` -gt 0 ]]
+do
+	echo "waiting for fastq files to merge..."
+	sleep ${sleep}
+done
+
+echo "fastq files merged, proceeding to aligment"
 
 #### get number of samples ####
 num=$(wc -l sample_sheet_STAR.txt | awk '{print $1}')
 echo "There are ${num} samples"
 
+# go back to working dir for job submission
+cd ${pwd}
+
 
 #### Run STAR and featurecounts ####
 # load modules here since we'll be submitting many jobs
 echo "submitting STAR alignment jobs..."
-module load star/2.6.0c
+module load star/2.7.2b
 module load subread/1.6.3
-bash quack_STAR.sh ${index_path} ${star_gtf} ${fc_gtf} ${dir}
+bash quack_STAR.sh ${index_path} ${genome_gtf} ${fastq_dir}
 echo "STAR jobs sumbmitted!"
 
 
@@ -90,7 +104,7 @@ done
 # run fastqc
 echo "submitting fastqc jobs..."
 cd ${pwd}
-module load fastqc/0.11.7
+module load fastqc/0.11.8
 bash quack_fastqc.sh
 echo "fastqc jobs sumbmitted!"
 

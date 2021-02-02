@@ -25,9 +25,9 @@ JobString="
 
 #BSUB -n 10
 
-#BSUB -M 32768
+#BSUB -M 32
 
-#BSUB -R rusage[mem=32768]
+#BSUB -R rusage[mem=32]
 
 #BSUB -N
 

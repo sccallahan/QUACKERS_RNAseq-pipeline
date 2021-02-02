@@ -25,9 +25,9 @@ JobString="
 
 #BSUB -n 8
 
-#BSUB -M 8192
+#BSUB -M 8
 
-#BSUB -R rusage[mem=8192]
+#BSUB -R rusage[mem=8]
 
 #BSUB -N
 
@@ -37,7 +37,7 @@ JobString="
 # we need to source activate py351, so we have multiqc already
 # module load fastqc/0.11.7 
 
-module load fastqc/0.11.7
+module load fastqc/0.11.8
 
 fastqc -t 5 -f bam -o ${pwd}/fastqc_output ${bam}
 "
