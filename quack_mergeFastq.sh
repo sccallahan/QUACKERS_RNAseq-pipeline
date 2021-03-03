@@ -99,16 +99,22 @@ JobString2="
 
 cd ${fq_dir}
 
-# https://stackoverflow.com/questions/35231162/bash-equivalent-for-os-walk
+## https://stackoverflow.com/questions/35231162/bash-equivalent-for-os-walk
 
-find ${fq_dir} -iname '*_R[0-9].fastq.gz' > ${fq_dir}/tmp_samplesheet.txt
+## find each read specifically to make sure R1 and R2 are fed into STAR correctly
+find ${fq_dir} -iname '*_R1.fastq.gz' > ${fq_dir}/tmp_r1.txt
+find ${fq_dir} -iname '*_R2.fastq.gz' > ${fq_dir}/tmp_r2.txt
 
 # https://stackoverflow.com/questions/14067523/moving-every-second-row-to-a-new-column-with-awk
 # have to use xargs solution -- shell expands the $0 to the script name and breaks awk solution
 
-xargs -n2 < ${fq_dir}/tmp_samplesheet.txt > ${fq_dir}/sample_sheet_STAR.txt
+# xargs -n2 < ${fq_dir}/tmp_samplesheet.txt > ${fq_dir}/sample_sheet_STAR.txt
 
 # awk '{printf "%s%s",$0,NR%2?"\t":RS}' ${fq_dir}/tmp_samplesheet.txt > ${fq_dir}/sample_sheet_STAR.txt
+
+## just paste files together as separate columns
+
+paste tmp_r1.txt tmp_r2.txt > sample_sheet_STAR.txt
 
 # rm tmp_samplesheet.txt
 
