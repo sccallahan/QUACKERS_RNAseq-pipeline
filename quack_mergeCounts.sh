@@ -31,6 +31,7 @@ JobString="
 
 #BSUB -N
 
+module load parallel/20201122
 
 # From Ming Tang https://divingintogeneticsandgenomics.rbind.io/post/merge-featurecount-table-from-rnaseq/
 cd featureCounts_output
