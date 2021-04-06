@@ -23,7 +23,7 @@ JobString="
 
 #BSUB -N
 
-
+module load multiqc/1.8
 
 
 # we need to source activate py351, so we have multiqc already
